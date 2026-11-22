@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.Kuku" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#FFF8E1</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@color/bg</item>
+    </style>
+    <color name="bg">#FFF8E1</color>
+    <color name="icon_bg">#FFB300</color>
+</resources>

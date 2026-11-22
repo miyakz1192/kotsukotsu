@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block title %}ゲーム配信{% endblock %}
+{% block body %}<h1>ゲーム配信</h1>
+<p class="mut">APKを登録すると、子供の端末の「こつこつランチャー」が、次にゲームを選んだとき（または充電中）に自動で更新します。
+APKは release 版（<code>./gradlew assembleRelease</code>）を使います。パッケージ名とバージョンはAPKから読み取ります。</p>
+{% for a in apps %}<div class="card"><h2 style="margin-top:0">{{ a.title }} <span class="mut">{{ a.app_id }}</span></h2>
+{% if a.latest %}<p>最新: <strong>{{ a.latest.version_name or "-" }}</strong>（versionCode {{ a.latest.version_code }}、{{ (a.latest.size/1048576)|round(1) }} MB、<code>{{ a.latest.package_name }}</code>）</p>
+{% if a.kind == "launcher" %}<p>子供の端末のブラウザで開くURL（最初の1回だけ）: <code>{{ base }}/apk/launcher/download</code></p>{% endif %}
+{% if a.kind == "parent" %}<p>親のスマホのブラウザで開くURL（家のWi-Fiで）: <code>{{ base }}/apk/parent-app/download</code>。ダウンロードしてインストールします。新しい版を登録すると、親用アプリのホームに案内が出ます（同じURLから入れ直すと更新されます）。</p>{% endif %}
+<details><summary>登録の履歴</summary><table><tr><th>登録日時</th><th>版</th><th>versionCode</th><th>署名（先頭）</th></tr>
+{% for r in histories[a.app_id] %}<tr><td>{{ r.uploaded_at|jst }}</td><td>{{ r.version_name or "-" }}</td><td>{{ r.version_code }}</td><td><code>{{ r.cert_sha256[:16] }}</code></td></tr>{% endfor %}</table></details>
+{% else %}<p class="mut">APKはまだ登録されていません。</p>{% endif %}
+<form method="post" action="/apk/{{ a.app_id }}" enctype="multipart/form-data" hx-boost="false">
+<label>APKファイル</label><input type="file" name="file" accept=".apk" required>
+{% if a.latest %}<label style="font-weight:normal"><input type="checkbox" name="allow_key_change" value="1" style="width:auto"> 署名の鍵の変更を認める（鍵をなくして作り直したときだけ。端末では入れ直しが必要）</label>{% endif %}
+<button>アップロード</button></form></div>{% endfor %}
+<div class="card"><h2 style="margin-top:0">子供の端末の準備（最初の1回だけ）</h2><ol>
+<li>端末を家のWi-Fiにつなぎます。<strong>以前ブラウザから入れた九九アプリがあれば、アプリを開いて同期を済ませてから、アンインストール</strong>します（ポイントの記録はサーバにあるので消えません）。</li>
+<li>端末のブラウザで、上の「こつこつランチャー」のURLを開いてAPKをダウンロードし、インストールします。「このアプリのインストールを許可しますか」と出たら、ブラウザに対して「この提供元のアプリを許可」をオンにします。</li>
+<li>ランチャーを開き、サーバのアドレスを確認して進みます。「アプリの インストールを きょかしてね」と出たら、ボタンから設定を開き、<strong>ランチャーに対して</strong>「この提供元のアプリを許可」をオンにします。</li>
+<li><strong>ファミリーリンクで管理している端末</strong>では、上の許可が端末側でオンにできないことがあります。そのときは保護者のファミリーリンク（アプリ、または <code>g.co/yourfamily</code>）で、子供の端末の設定から「提供元不明のアプリ」を許可してください（画面の名前は版によって違います）。</li>
+<li>ランチャーで九九を選ぶと、初回だけ「インストールしますか」と確認が出ます。以後の更新は、Android 12 以上なら確認なしで行われます（それより古い端末では毎回「更新」を押します）。</li>
+<li>ブラウザに与えた許可は、ランチャーを入れた後はオフに戻して構いません（ランチャーに与えた許可はオンのままにします）。</li></ol>
+<p class="mut">ランチャーの更新も同じ仕組みです。署名の鍵（サーバ機の <code>~/.kotsukotsu-secrets/</code>）をなくすと全端末で入れ直しになるので、別の機器にバックアップしてください。</p></div>{% endblock %}

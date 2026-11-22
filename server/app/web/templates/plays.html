@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block title %}{{ child.display_name }}の学習記録{% endblock %}
+{% block body %}<h1>{{ child.display_name }}の学習記録</h1>
+<div class="card">累積正解率 <strong>{{ (accuracy*100)|round(1) }}%</strong></div>
+<div class="grid"><div class="card"><h2 style="margin-top:0">段ごとの正解率</h2>
+<table><tr><th>段</th><th class="num">回答</th><th class="num">正解率</th></tr>
+{% for dan, v in dan_stat %}<tr><td>{{ dan }}のだん</td><td class="num">{{ v[0] }}</td><td class="num">{{ (v[1]*100/v[0])|round(1) }}%</td></tr>{% else %}<tr><td colspan="3" class="mut">まだありません</td></tr>{% endfor %}</table></div>
+<div class="card"><h2 style="margin-top:0">苦手な問題</h2>
+<table><tr><th>問題</th><th class="num">回答</th><th class="num">正解率</th></tr>
+{% for k, v in weak %}<tr><td>{{ k[0] }} × {{ k[1] }}</td><td class="num">{{ v[0] }}</td><td class="num">{{ (v[1]*100/v[0])|round(0)|int }}%</td></tr>{% else %}<tr><td colspan="3" class="mut">まだありません</td></tr>{% endfor %}</table></div></div>
+<h2>プレイ一覧</h2><form method="get" class="inline"><input type="date" name="d_from" value="{{ d_from }}"> 〜 <input type="date" name="d_to" value="{{ d_to }}"><button class="sub">絞り込み</button></form>
+<table><tr><th>プレイ日</th><th>モード</th><th class="num">正解</th><th>端末時刻とのずれ</th><th>状態</th></tr>
+{% for r in rows %}{% set p = r.p %}<tr><td>{{ p.play_date }}<div class="mut">受信 {{ p.received_at|jst }}</div></td>
+<td><details><summary>{{ MODE_LABEL[p.mode] }}{% if p.dan %}（{{ p.dan }}の段）{% endif %}</summary>
+{% for a in r.answers %}<div class="{{ 'ok' if a.is_correct else 'neg' }}">{{ a.a }}×{{ a.b }}＝{{ a.answer if a.answer is not none else '—' }} {{ '○' if a.is_correct else '×' }}{% if a.over_cap %} <span class="tag">上限超過</span>{% endif %}{% if a.elapsed_ms %} <span class="mut">{{ a.elapsed_ms }}ms</span>{% endif %}</div>{% endfor %}</details></td>
+<td class="num">{{ p.correct_count }}/{{ r.answers|length }}</td>
+<td>{% if r.skew is not none %}{{ '%+.0f'|format(r.skew/60) }} 分{% else %}-{% endif %}</td>
+<td>{% if p.was_offline %}<span class="tag">オフライン</span>{% endif %}{% if p.clock_suspect %} <span class="tag warn">端末時刻が不審</span>{% endif %}</td></tr>
+{% else %}<tr><td colspan="5" class="mut">プレイはまだありません</td></tr>{% endfor %}</table>{% endblock %}

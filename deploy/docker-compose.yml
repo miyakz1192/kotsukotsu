@@ -1,0 +1,13 @@
+# 家庭内LANの自宅サーバで使う。外部公開しない（ルータのポート開放をしないこと）。
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${KOTSUKOTSU_PORT}:8000"          # 家庭内LANからのみ。必要なら "192.168.x.y:8000:8000" のようにIPを限定する
+    volumes:
+      - ./data:/data         # DB（kotsukotsu.db）とAPKがここに入る
+    environment:
+      TZ: Asia/Tokyo

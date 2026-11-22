@@ -1,0 +1,1953 @@
+openapi: 3.1.0
+info:
+  title: kotsukotsu 管理サーバ
+  version: 1.0.0
+paths:
+  /api/v1/family/children:
+    get:
+      tags:
+      - game
+      summary: List Children
+      description: 初回登録の選択画面用。認証なし（家庭内LAN限定、REQ-GAME-09）。
+      operationId: list_children_api_v1_family_children_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildrenResponse'
+  /api/v1/apps:
+    get:
+      tags:
+      - launcher
+      summary: List Apps
+      description: ランチャー用のアプリ一覧と最新版。認証なし（家庭内LAN限定、REQ-GAME-09 と同じ扱い）。
+      operationId: list_apps_api_v1_apps_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppsResponse'
+  /api/v1/apps/{app_id}/releases/{version_code}/apk:
+    get:
+      tags:
+      - launcher
+      summary: Download Release
+      operationId: download_release_api_v1_apps__app_id__releases__version_code__apk_get
+      parameters:
+      - name: app_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: App Id
+      - name: version_code
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Version Code
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+            application/vnd.android.package-archive: {}
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not Found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/game-registrations:
+    post:
+      tags:
+      - game
+      summary: Register Game
+      operationId: register_game_api_v1_game_registrations_post
+      parameters:
+      - name: x-game-title-id
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Game-Title-Id
+      - name: x-app-version
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-App-Version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/settings:
+    get:
+      tags:
+      - game
+      - parent
+      summary: Get Settings
+      description: 現在のポイントルール。ゲーム（端末トークン）・親用アプリ（親トークン）のどちらでも取得できる。
+      operationId: get_settings_api_v1_settings_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: x-game-title-id
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Game-Title-Id
+      - name: x-app-version
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-App-Version
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsModel'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notification-settings:
+    get:
+      tags:
+      - game
+      summary: Notification Settings
+      description: おしらせ通知の設定と文言（docs/06 1.7）。ゲームは同期のたびに取得し、端末内で通知を予約する。
+      operationId: notification_settings_api_v1_notification_settings_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: x-game-title-id
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Game-Title-Id
+      - name: x-app-version
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-App-Version
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettingsResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/players/me/summary:
+    get:
+      tags:
+      - game
+      summary: My Summary
+      operationId: my_summary_api_v1_players_me_summary_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: x-game-title-id
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Game-Title-Id
+      - name: x-app-version
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-App-Version
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummaryResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/play-sessions:
+    post:
+      tags:
+      - game
+      summary: Post Play
+      operationId: post_play_api_v1_play_sessions_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: x-game-title-id
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Game-Title-Id
+      - name: x-app-version
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-App-Version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaySessionRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaySessionResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/login:
+    post:
+      tags:
+      - parent
+      summary: Login
+      operationId: login_api_v1_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '426':
+          description: Upgrade Required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/password:
+    post:
+      tags:
+      - parent
+      summary: Change Password
+      operationId: change_password_api_v1_auth_password_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordRequest'
+      responses:
+        '204':
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/children/summary:
+    get:
+      tags:
+      - parent
+      summary: Children Summary
+      operationId: children_summary_api_v1_children_summary_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildrenSummaryResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/children/{user_id}/ledger:
+    get:
+      tags:
+      - parent
+      summary: Child Ledger
+      operationId: child_ledger_api_v1_children__user_id__ledger_get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      - name: from_
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: 'From '
+      - name: to
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: To
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LedgerResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/children/{user_id}/plays:
+    get:
+      tags:
+      - parent
+      summary: Child Plays
+      operationId: child_plays_api_v1_children__user_id__plays_get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      - name: from_
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: 'From '
+      - name: to
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: To
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaysResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/withdrawals:
+    post:
+      tags:
+      - parent
+      summary: Post Withdrawal
+      description: 残高不足でも受け付ける（REQ-PT-05）。同じ transaction_id の再送は200で最初の記録を返す。
+      operationId: post_withdrawal_api_v1_withdrawals_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawalRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithdrawalResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/adjustments:
+    post:
+      tags:
+      - parent
+      summary: Post Adjustment
+      description: 外出先で記録した調整（was_offline=true）は端末の時刻を発生時刻にする（REQ-APP-10）。
+      operationId: post_adjustment_api_v1_adjustments_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustmentRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdjustmentResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '426':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Upgrade Required
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AdjustmentRequest:
+      properties:
+        adjustment_id:
+          type: string
+          maxLength: 64
+          minLength: 8
+          title: Adjustment Id
+        child_user_id:
+          type: string
+          title: Child User Id
+        points:
+          type: integer
+          title: Points
+        note:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Note
+        occurred_at_device:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Occurred At Device
+          description: was_offline=true のとき台帳の発生時刻に使う（親用アプリの外出先での記録）
+        was_offline:
+          type: boolean
+          title: Was Offline
+          default: false
+      type: object
+      required:
+      - adjustment_id
+      - child_user_id
+      - points
+      title: AdjustmentRequest
+    AdjustmentResponse:
+      properties:
+        adjustment_id:
+          type: string
+          title: Adjustment Id
+        recorded_at:
+          type: string
+          format: date-time
+          title: Recorded At
+        balance:
+          type: integer
+          title: Balance
+      type: object
+      required:
+      - adjustment_id
+      - recorded_at
+      - balance
+      title: AdjustmentResponse
+    AnswerModel:
+      properties:
+        seq:
+          type: integer
+          title: Seq
+        a:
+          type: integer
+          title: A
+        b:
+          type: integer
+          title: B
+        answer:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Answer
+        is_correct:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Is Correct
+        elapsed_ms:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Elapsed Ms
+      type: object
+      required:
+      - seq
+      - a
+      - b
+      title: AnswerModel
+    AnswerOut:
+      properties:
+        seq:
+          type: integer
+          title: Seq
+        a:
+          type: integer
+          title: A
+        b:
+          type: integer
+          title: B
+        answer:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Answer
+        is_correct:
+          type: boolean
+          title: Is Correct
+        elapsed_ms:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Elapsed Ms
+        over_cap:
+          type: boolean
+          title: Over Cap
+      type: object
+      required:
+      - seq
+      - a
+      - b
+      - answer
+      - is_correct
+      - elapsed_ms
+      - over_cap
+      title: AnswerOut
+    AppItem:
+      properties:
+        app_id:
+          type: string
+          title: App Id
+          description: ゲームタイトルID、またはランチャー自身は launcher
+        kind:
+          type: string
+          title: Kind
+          description: game / launcher / parent（親用アプリ）
+        title:
+          type: string
+          title: Title
+        package_name:
+          type: string
+          title: Package Name
+        version_code:
+          type: integer
+          title: Version Code
+        version_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Version Name
+        min_sdk:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Min Sdk
+        sha256:
+          type: string
+          title: Sha256
+          description: APKファイル全体の SHA-256（16進小文字）。ダウンロード後に照合する
+        size:
+          type: integer
+          title: Size
+        download_path:
+          type: string
+          title: Download Path
+          description: サーバのアドレスからの相対パス（例 api/v1/apps/kuku-challenge/releases/3/apk）
+      type: object
+      required:
+      - app_id
+      - kind
+      - title
+      - package_name
+      - version_code
+      - version_name
+      - min_sdk
+      - sha256
+      - size
+      - download_path
+      title: AppItem
+      description: ランチャーが表示・更新するアプリ（最新版が登録されているものだけ）。
+    AppsResponse:
+      properties:
+        apps:
+          items:
+            $ref: '#/components/schemas/AppItem'
+          type: array
+          title: Apps
+      type: object
+      required:
+      - apps
+      title: AppsResponse
+    Awarded:
+      properties:
+        study:
+          type: integer
+          title: Study
+        streak_bonus:
+          type: integer
+          title: Streak Bonus
+        self_best_bonus:
+          type: integer
+          title: Self Best Bonus
+      type: object
+      required:
+      - study
+      - streak_bonus
+      - self_best_bonus
+      title: Awarded
+    Child:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        display_name:
+          type: string
+          title: Display Name
+      type: object
+      required:
+      - user_id
+      - display_name
+      title: Child
+    ChildCard:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        display_name:
+          type: string
+          title: Display Name
+        is_active:
+          type: boolean
+          title: Is Active
+        balance:
+          type: integer
+          title: Balance
+        streak_days:
+          type: integer
+          title: Streak Days
+        month_earned:
+          type: integer
+          title: Month Earned
+        month_cap:
+          type: integer
+          title: Month Cap
+        month_remaining:
+          type: integer
+          title: Month Remaining
+        cumulative_accuracy:
+          type: number
+          title: Cumulative Accuracy
+        last_play_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Last Play At
+        as_of:
+          type: string
+          format: date-time
+          title: As Of
+      type: object
+      required:
+      - user_id
+      - display_name
+      - is_active
+      - balance
+      - streak_days
+      - month_earned
+      - month_cap
+      - month_remaining
+      - cumulative_accuracy
+      - last_play_at
+      - as_of
+      title: ChildCard
+    ChildrenResponse:
+      properties:
+        children:
+          items:
+            $ref: '#/components/schemas/Child'
+          type: array
+          title: Children
+      type: object
+      required:
+      - children
+      title: ChildrenResponse
+    ChildrenSummaryResponse:
+      properties:
+        children:
+          items:
+            $ref: '#/components/schemas/ChildCard'
+          type: array
+          title: Children
+      type: object
+      required:
+      - children
+      title: ChildrenSummaryResponse
+    ErrorDetail:
+      properties:
+        code:
+          type: string
+          title: Code
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - code
+      - message
+      title: ErrorDetail
+    ErrorResponse:
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+      type: object
+      required:
+      - error
+      title: ErrorResponse
+    GraduationModel:
+      properties:
+        modes:
+          items:
+            type: string
+          type: array
+          title: Modes
+        rate:
+          type: integer
+          title: Rate
+        points_per_correct:
+          type: integer
+          title: Points Per Correct
+      type: object
+      required:
+      - modes
+      - rate
+      - points_per_correct
+      title: GraduationModel
+      description: 卒業した段（docs/03 5.2.1）。null なら卒業なし。
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    LedgerEntryModel:
+      properties:
+        entry_id:
+          type: string
+          title: Entry Id
+        type:
+          type: string
+          title: Type
+        points:
+          type: integer
+          title: Points
+        play_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Play Id
+        transaction_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Transaction Id
+        actor_user_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Actor User Id
+        occurred_at:
+          type: string
+          format: date-time
+          title: Occurred At
+        recorded_at:
+          type: string
+          format: date-time
+          title: Recorded At
+        play_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Play Date
+        note:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Note
+      type: object
+      required:
+      - entry_id
+      - type
+      - points
+      - play_id
+      - transaction_id
+      - actor_user_id
+      - occurred_at
+      - recorded_at
+      - play_date
+      - note
+      title: LedgerEntryModel
+    LedgerResponse:
+      properties:
+        entries:
+          items:
+            $ref: '#/components/schemas/LedgerEntryModel'
+          type: array
+          title: Entries
+        balance:
+          type: integer
+          title: Balance
+      type: object
+      required:
+      - entries
+      - balance
+      title: LedgerResponse
+    LoginRequest:
+      properties:
+        login_id:
+          type: string
+          title: Login Id
+        password:
+          type: string
+          title: Password
+      type: object
+      required:
+      - login_id
+      - password
+      title: LoginRequest
+    LoginResponse:
+      properties:
+        token:
+          type: string
+          title: Token
+        must_change_password:
+          type: boolean
+          title: Must Change Password
+      type: object
+      required:
+      - token
+      - must_change_password
+      title: LoginResponse
+    MonthModel:
+      properties:
+        earned:
+          type: integer
+          title: Earned
+        cap:
+          type: integer
+          title: Cap
+      type: object
+      required:
+      - earned
+      - cap
+      title: MonthModel
+    NotificationMessageItem:
+      properties:
+        message_id:
+          type: string
+          title: Message Id
+        kind:
+          type: string
+          title: Kind
+          description: encourage（はげまし）／points（ポイント入り）
+        text:
+          type: string
+          title: Text
+          description: 差し込み {name} {balance} {today_left} {month_left} {streak} {next_streak}
+            {streak_bonus} を含むことがある
+      type: object
+      required:
+      - message_id
+      - kind
+      - text
+      title: NotificationMessageItem
+    NotificationSettingsResponse:
+      properties:
+        enabled:
+          type: boolean
+          title: Enabled
+        inactive_days:
+          type: integer
+          title: Inactive Days
+          description: 今日を含めて何日やっていなければ通知するか
+        weekday_times:
+          items:
+            type: string
+          type: array
+          title: Weekday Times
+          description: 平日の通知時刻 HH:MM（日本時間、昇順、0〜3件）
+        holiday_times:
+          items:
+            type: string
+          type: array
+          title: Holiday Times
+          description: 土日祝の通知時刻
+        point_message_every:
+          type: integer
+          title: Point Message Every
+          description: 何回に1回ポイント入りにするか（0＝出さない）
+        messages:
+          items:
+            $ref: '#/components/schemas/NotificationMessageItem'
+          type: array
+          title: Messages
+        holidays:
+          items:
+            type: string
+            format: date
+          type: array
+          title: Holidays
+          description: 今日から holidays_until までの祝日・振替休日・国民の休日
+        holidays_until:
+          type: string
+          format: date
+          title: Holidays Until
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - enabled
+      - inactive_days
+      - weekday_times
+      - holiday_times
+      - point_message_every
+      - messages
+      - holidays
+      - holidays_until
+      - updated_at
+      title: NotificationSettingsResponse
+    PasswordRequest:
+      properties:
+        current_password:
+          type: string
+          title: Current Password
+        new_password:
+          type: string
+          title: New Password
+      type: object
+      required:
+      - current_password
+      - new_password
+      title: PasswordRequest
+    PlayOut:
+      properties:
+        play_id:
+          type: string
+          title: Play Id
+        game_title_id:
+          type: string
+          title: Game Title Id
+        mode:
+          type: string
+          title: Mode
+        dan:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Dan
+        started_at_device:
+          type: string
+          format: date-time
+          title: Started At Device
+        ended_at_device:
+          type: string
+          format: date-time
+          title: Ended At Device
+        received_at:
+          type: string
+          format: date-time
+          title: Received At
+        was_offline:
+          type: boolean
+          title: Was Offline
+        play_date:
+          type: string
+          format: date
+          title: Play Date
+        clock_suspect:
+          type: boolean
+          title: Clock Suspect
+        correct_count:
+          type: integer
+          title: Correct Count
+        server_rule_version:
+          type: integer
+          title: Server Rule Version
+        answers:
+          items:
+            $ref: '#/components/schemas/AnswerOut'
+          type: array
+          title: Answers
+      type: object
+      required:
+      - play_id
+      - game_title_id
+      - mode
+      - dan
+      - started_at_device
+      - ended_at_device
+      - received_at
+      - was_offline
+      - play_date
+      - clock_suspect
+      - correct_count
+      - server_rule_version
+      - answers
+      title: PlayOut
+    PlaySessionRequest:
+      properties:
+        play_id:
+          type: string
+          maxLength: 64
+          minLength: 8
+          title: Play Id
+        mode:
+          type: string
+          title: Mode
+        dan:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Dan
+        started_at_device:
+          type: string
+          format: date-time
+          title: Started At Device
+        ended_at_device:
+          type: string
+          format: date-time
+          title: Ended At Device
+        was_offline:
+          type: boolean
+          title: Was Offline
+          default: false
+        client_rule_version:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Client Rule Version
+        answers:
+          items:
+            $ref: '#/components/schemas/AnswerModel'
+          type: array
+          title: Answers
+      type: object
+      required:
+      - play_id
+      - mode
+      - started_at_device
+      - ended_at_device
+      - answers
+      title: PlaySessionRequest
+    PlaySessionResponse:
+      properties:
+        play_id:
+          type: string
+          title: Play Id
+        play_date:
+          type: string
+          format: date
+          title: Play Date
+        awarded:
+          $ref: '#/components/schemas/Awarded'
+        self_best_new:
+          items:
+            $ref: '#/components/schemas/SelfBestAchieved'
+          type: array
+          title: Self Best New
+        summary:
+          $ref: '#/components/schemas/SummaryResponse'
+      type: object
+      required:
+      - play_id
+      - play_date
+      - awarded
+      - self_best_new
+      - summary
+      title: PlaySessionResponse
+    PlaysResponse:
+      properties:
+        plays:
+          items:
+            $ref: '#/components/schemas/PlayOut'
+          type: array
+          title: Plays
+      type: object
+      required:
+      - plays
+      title: PlaysResponse
+    RegistrationRequest:
+      properties:
+        game_title_id:
+          type: string
+          title: Game Title Id
+        user_id:
+          type: string
+          title: User Id
+        device_id:
+          type: string
+          minLength: 1
+          title: Device Id
+      type: object
+      required:
+      - game_title_id
+      - user_id
+      - device_id
+      title: RegistrationRequest
+    RegistrationResponse:
+      properties:
+        registration_id:
+          type: string
+          title: Registration Id
+        device_token:
+          type: string
+          title: Device Token
+        settings:
+          $ref: '#/components/schemas/SettingsModel'
+      type: object
+      required:
+      - registration_id
+      - device_token
+      - settings
+      title: RegistrationResponse
+    SelfBestAchieved:
+      properties:
+        dan:
+          type: integer
+          title: Dan
+        threshold:
+          type: integer
+          title: Threshold
+      type: object
+      required:
+      - dan
+      - threshold
+      title: SelfBestAchieved
+    SelfBestModel:
+      properties:
+        window:
+          type: integer
+          title: Window
+        thresholds:
+          items:
+            $ref: '#/components/schemas/SelfBestThresholdModel'
+          type: array
+          title: Thresholds
+      type: object
+      required:
+      - window
+      - thresholds
+      title: SelfBestModel
+    SelfBestThresholdModel:
+      properties:
+        rate:
+          type: integer
+          title: Rate
+        bonus:
+          type: integer
+          title: Bonus
+      type: object
+      required:
+      - rate
+      - bonus
+      title: SelfBestThresholdModel
+    SettingsModel:
+      properties:
+        version:
+          type: integer
+          title: Version
+        timezone:
+          type: string
+          title: Timezone
+        points_per_correct:
+          additionalProperties:
+            type: integer
+          type: object
+          title: Points Per Correct
+        streak_bonus_per_day:
+          type: integer
+          title: Streak Bonus Per Day
+        daily_point_cap:
+          type: integer
+          title: Daily Point Cap
+        daily_question_cap:
+          type: integer
+          title: Daily Question Cap
+        monthly_cap:
+          type: integer
+          title: Monthly Cap
+        self_best:
+          $ref: '#/components/schemas/SelfBestModel'
+        graduation:
+          anyOf:
+          - $ref: '#/components/schemas/GraduationModel'
+          - type: 'null'
+      type: object
+      required:
+      - version
+      - timezone
+      - points_per_correct
+      - streak_bonus_per_day
+      - daily_point_cap
+      - daily_question_cap
+      - monthly_cap
+      - self_best
+      title: SettingsModel
+    SummaryResponse:
+      properties:
+        as_of:
+          type: string
+          format: date-time
+          title: As Of
+        streak_days:
+          type: integer
+          title: Streak Days
+        cumulative_accuracy:
+          type: number
+          title: Cumulative Accuracy
+        balance:
+          type: integer
+          title: Balance
+        today:
+          $ref: '#/components/schemas/TodayModel'
+        month:
+          $ref: '#/components/schemas/MonthModel'
+        dan_recent:
+          additionalProperties:
+            items:
+              type: boolean
+            type: array
+          type: object
+          title: Dan Recent
+        self_best_achieved:
+          items:
+            $ref: '#/components/schemas/SelfBestAchieved'
+          type: array
+          title: Self Best Achieved
+        next_sequential_dan:
+          type: integer
+          title: Next Sequential Dan
+        settings_version:
+          type: integer
+          title: Settings Version
+      type: object
+      required:
+      - as_of
+      - streak_days
+      - cumulative_accuracy
+      - balance
+      - today
+      - month
+      - dan_recent
+      - self_best_achieved
+      - next_sequential_dan
+      - settings_version
+      title: SummaryResponse
+    TodayModel:
+      properties:
+        questions:
+          type: integer
+          title: Questions
+        question_cap:
+          type: integer
+          title: Question Cap
+        study_points:
+          type: integer
+          title: Study Points
+        point_cap:
+          type: integer
+          title: Point Cap
+        first_play_done:
+          type: boolean
+          title: First Play Done
+      type: object
+      required:
+      - questions
+      - question_cap
+      - study_points
+      - point_cap
+      - first_play_done
+      title: TodayModel
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    WithdrawalRequest:
+      properties:
+        transaction_id:
+          type: string
+          maxLength: 64
+          minLength: 8
+          title: Transaction Id
+        child_user_id:
+          type: string
+          title: Child User Id
+        points:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Points
+        occurred_at_device:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Occurred At Device
+        was_offline:
+          type: boolean
+          title: Was Offline
+          default: false
+        note:
+          anyOf:
+          - type: string
+            maxLength: 200
+          - type: 'null'
+          title: Note
+          description: メモ（例 おかし）。省略可
+      type: object
+      required:
+      - transaction_id
+      - child_user_id
+      - points
+      title: WithdrawalRequest
+    WithdrawalResponse:
+      properties:
+        transaction_id:
+          type: string
+          title: Transaction Id
+        recorded_at:
+          type: string
+          format: date-time
+          title: Recorded At
+        balance:
+          type: integer
+          title: Balance
+      type: object
+      required:
+      - transaction_id
+      - recorded_at
+      - balance
+      title: WithdrawalResponse

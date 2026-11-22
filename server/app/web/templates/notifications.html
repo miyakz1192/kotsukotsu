@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% block title %}おしらせ（通知）{% endblock %}
+{% block body %}<h1>おしらせ（通知） {% if not s.enabled %}<span class="tag warn">停止中</span>{% endif %}</h1>
+<p class="mut">九九をやっていない日に、子供の端末へ励ましの通知を出します。通知は子供の端末が自分で予約して出すため、家の外でも届きます。
+設定は、子供の端末が次に家のWi-Fiにつながって九九が同期したときに届きます。</p>
+<div class="card"><form method="post" action="/notifications" hx-boost="false"><div class="grid">
+<div><label style="font-weight:normal"><input type="checkbox" name="enabled" value="1" style="width:auto"{% if s.enabled %} checked{% endif %}> 通知を出す</label>
+<label>やっていない日数（今日を含めて、1〜7）</label><input type="number" min="1" max="7" name="inactive_days" value="{{ s.inactive_days }}" required>
+<p class="mut">1：今日まだやっていなければ通知。2：昨日も今日もやっていなければ通知。遊んだら、その日の残りは出ません。</p>
+<label>ポイント入りの文にする頻度（何回に1回、0で出さない）</label><input type="number" min="0" max="10" name="point_message_every" value="{{ s.point_message_every }}" required></div>
+<div><label>平日の時刻（空欄の枠は通知しない）</label>{% for i in range(3) %}
+<input type="time" name="wd_{{ i }}" value="{{ s.weekday_times[i] if i < s.weekday_times|length else '' }}"> {% endfor %}
+<label>土日祝の時刻</label>{% for i in range(3) %}
+<input type="time" name="hd_{{ i }}" value="{{ s.holiday_times[i] if i < s.holiday_times|length else '' }}"> {% endfor %}
+<p class="mut">端末の都合で、数分おくれて届くことがあります。</p></div></div>
+<p><button>保存</button></p></form>
+<p class="mut">最終更新：{{ s.updated_at|jst }}</p></div>
+
+<h2 id="messages">文言</h2>
+<p class="mut">差し込み：{% for k, v in placeholders.items() %}<code>{{ '{' ~ k ~ '}' }}</code> {{ v }}{% if not loop.last %}、{% endif %}{% endfor %}。60字以内。
+「ポイント入り」は、今日や今月の上限に達しているときは使わず、はげましの文に切り替えます。{% if sample %}見本は{{ sample.name }}さんのいまの値です。{% endif %}</p>
+<table><tr><th>種類</th><th>文言</th><th>見本</th><th>有効</th><th></th></tr>
+{% for m in msgs %}{% set f = 'm-' ~ m.message_id %}<tr{% if not m.is_active %} class="mut"{% endif %}>
+<td><select name="kind" form="{{ f }}">{% for k, label in kind_label.items() %}<option value="{{ k }}"{% if m.kind == k %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
+<td><input name="text" form="{{ f }}" value="{{ m.text }}" maxlength="60" style="width:100%"></td>
+<td>{{ previews.get(m.message_id, '') }}</td>
+<td><label style="font-weight:normal"><input type="checkbox" name="inactive" value="1" form="{{ f }}" style="width:auto"{% if not m.is_active %} checked{% endif %}> 無効</label></td>
+<td><form id="{{ f }}" method="post" action="/notifications/messages/{{ m.message_id }}" hx-boost="false"><button>保存</button></form></td></tr>{% endfor %}</table>
+<div class="card"><form method="post" action="/notifications/messages" hx-boost="false"><h3>文言を追加</h3>
+<select name="kind">{% for k, label in kind_label.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select>
+<input name="text" maxlength="60" style="width:60%" placeholder="{name}、きょうも 九九 やってみよう！" required> <button>追加</button></form></div>
+{% endblock %}

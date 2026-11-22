@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}ゲーム登録{% endblock %}
+{% block body %}<h1>ゲーム登録</h1>
+<table><tr><th>子供</th><th>ゲーム</th><th>端末</th><th>登録</th><th>最終同期</th><th>状態</th><th></th></tr>
+{% for r in regs %}<tr><td>{{ names.get(r.user_id) }}</td><td>{{ titles.get(r.game_title_id) }}<div class="mut">{{ r.game_title_id }}</div></td>
+<td class="mut">{{ r.device_id[:12] }}</td><td>{{ r.registered_at|jst }}</td><td>{{ r.last_synced_at|jst }}</td>
+<td>{% if r.revoked_at %}<span class="tag">解除済み {{ r.revoked_at|jst }}</span>{% else %}<span class="tag ok">有効</span>{% endif %}</td>
+<td>{% if not r.revoked_at %}<form method="post" action="/registrations/{{ r.registration_id }}/revoke" onsubmit="return confirm('登録を解除します。端末は初回登録画面に戻ります（未送信のプレイは端末に残ります）。')" hx-boost="false"><button class="danger">解除</button></form>{% endif %}</td></tr>
+{% else %}<tr><td colspan="7" class="mut">登録はまだありません</td></tr>{% endfor %}</table>{% endblock %}

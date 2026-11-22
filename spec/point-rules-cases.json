@@ -1,0 +1,536 @@
+{
+ "_comment": "docs/03_point-rules.md 6章のテストケース。サーバ(Python)とゲーム(Kotlin)の両方のテストで使う。設定値は settings（初期値）。",
+ "_format": {
+  "init": "ケース開始時点の状態。month_earned=その月の獲得済み合計、played_dates=プレイ済みの日。未指定は新規。",
+  "steps": "プレイの列。date または date_range(from,to) の各日に、repeat 回ずつ。pattern: 'dan'=dan の段を b=1..9、'one_per_dan'=1〜9の段から1問ずつ。correct=先頭から何問正解か（省略=9）。プレイは展開後に1から通し番号を付ける。",
+  "expect": "play=通し番号。study/streak_bonus/self_best（合計）/over_cap（over_capの回答数）のうち書いたものだけ検査。",
+  "expect_totals": "month_total=最後の日付の月の獲得合計、cap_reached_on=月の上限に初めて到達した日。",
+  "settings": "初期値。graduation（卒業）は docs/03 5.2.1。"
+ },
+ "settings": {
+  "version": 1,
+  "timezone": "Asia/Tokyo",
+  "points_per_correct": {
+   "training_sequential": 1,
+   "training_select": 1,
+   "challenge": 2
+  },
+  "streak_bonus_per_day": 1,
+  "daily_point_cap": 40,
+  "daily_question_cap": 117,
+  "monthly_cap": 1500,
+  "self_best": {
+   "window": 27,
+   "thresholds": [
+    {
+     "rate": 80,
+     "bonus": 10
+    },
+    {
+     "rate": 90,
+     "bonus": 20
+    },
+    {
+     "rate": 100,
+     "bonus": 30
+    }
+   ]
+  },
+  "graduation": {
+   "modes": [
+    "training_select"
+   ],
+   "rate": 100,
+   "points_per_correct": 0
+  }
+ },
+ "cases": [
+  {
+   "id": "TC1",
+   "description": "月の初プレイ。チャレンジ1〜9の段から1問ずつ全問正解",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "challenge",
+     "pattern": "one_per_dan"
+    }
+   ],
+   "expect": [
+    {
+     "play": 1,
+     "study": 18,
+     "streak_bonus": 1,
+     "self_best": 0
+    }
+   ]
+  },
+  {
+   "id": "TC2",
+   "description": "月の初プレイ。順番モード1の段全問正解",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_sequential",
+     "dan": 1,
+     "pattern": "dan"
+    }
+   ],
+   "expect": [
+    {
+     "play": 1,
+     "study": 9,
+     "streak_bonus": 1
+    }
+   ]
+  },
+  {
+   "id": "TC3",
+   "description": "同じ日の2回目は連続日数ボーナスなし",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_sequential",
+     "dan": 1,
+     "pattern": "dan"
+    },
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 2,
+     "pattern": "dan"
+    }
+   ],
+   "expect": [
+    {
+     "play": 2,
+     "study": 9,
+     "streak_bonus": 0
+    }
+   ]
+  },
+  {
+   "id": "TC4",
+   "description": "チャレンジ全問正解を3回。1日40ptで頭打ち",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "challenge",
+     "pattern": "one_per_dan",
+     "repeat": 3
+    }
+   ],
+   "expect": [
+    {
+     "play": 1,
+     "study": 18,
+     "streak_bonus": 1
+    },
+    {
+     "play": 2,
+     "study": 18,
+     "streak_bonus": 0
+    },
+    {
+     "play": 3,
+     "study": 4,
+     "streak_bonus": 0
+    }
+   ]
+  },
+  {
+   "id": "TC5",
+   "description": "3の段を全問不正解で14回。14回目は1日117問超過でover_cap",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0,
+     "repeat": 14
+    }
+   ],
+   "expect": [
+    {
+     "play": 13,
+     "over_cap": 0
+    },
+    {
+     "play": 14,
+     "over_cap": 9,
+     "study": 0,
+     "self_best": 0
+    }
+   ]
+  },
+  {
+   "id": "TC6",
+   "description": "12/1〜12/4にプレイ済み。12/5は連続5",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    },
+    {
+     "date": "2026-12-02",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    },
+    {
+     "date": "2026-12-03",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    },
+    {
+     "date": "2026-12-04",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    },
+    {
+     "date": "2026-12-05",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    }
+   ],
+   "expect": [
+    {
+     "play": 5,
+     "study": 0,
+     "streak_bonus": 5
+    }
+   ]
+  },
+  {
+   "id": "TC7",
+   "description": "11/29・11/30にプレイ済み。12/1は月初リセットで連続1",
+   "steps": [
+    {
+     "date": "2026-11-29",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    },
+    {
+     "date": "2026-11-30",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    },
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    }
+   ],
+   "expect": [
+    {
+     "play": 3,
+     "study": 0,
+     "streak_bonus": 1
+    }
+   ]
+  },
+  {
+   "id": "TC8",
+   "description": "12/1・12/2にプレイ済み、12/3は休み。12/4は連続1",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    },
+    {
+     "date": "2026-12-02",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    },
+    {
+     "date": "2026-12-04",
+     "mode": "training_select",
+     "dan": 3,
+     "pattern": "dan",
+     "correct": 0
+    }
+   ],
+   "expect": [
+    {
+     "play": 3,
+     "study": 0,
+     "streak_bonus": 1
+    }
+   ]
+  },
+  {
+   "id": "TC9",
+   "description": "7の段全問正解を3回。3回目で80/90/100%を同時達成",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 7,
+     "pattern": "dan",
+     "repeat": 3
+    }
+   ],
+   "expect": [
+    {
+     "play": 1,
+     "self_best": 0
+    },
+    {
+     "play": 2,
+     "self_best": 0
+    },
+    {
+     "play": 3,
+     "study": 9,
+     "self_best": 60
+    }
+   ]
+  },
+  {
+   "id": "TC10",
+   "description": "6の段9問全問正解を2回のあと、翌日4問正解5問不正解 → 22/27で80%達成",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 6,
+     "pattern": "dan",
+     "repeat": 2
+    },
+    {
+     "date": "2026-12-02",
+     "mode": "training_select",
+     "dan": 6,
+     "pattern": "dan",
+     "correct": 4
+    }
+   ],
+   "expect": [
+    {
+     "play": 3,
+     "study": 4,
+     "streak_bonus": 2,
+     "self_best": 10
+    }
+   ]
+  },
+  {
+   "id": "TC11",
+   "description": "6の段9問全問正解を2回のあと、翌日3問正解6問不正解 → 21/27で未達",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 6,
+     "pattern": "dan",
+     "repeat": 2
+    },
+    {
+     "date": "2026-12-02",
+     "mode": "training_select",
+     "dan": 6,
+     "pattern": "dan",
+     "correct": 3
+    }
+   ],
+   "expect": [
+    {
+     "play": 3,
+     "study": 3,
+     "streak_bonus": 2,
+     "self_best": 0
+    }
+   ]
+  },
+  {
+   "id": "TC12",
+   "description": "12月の獲得済み1,495pt、12/1はプレイ済み。チャレンジ全問正解は5ptで月の上限に切り詰め",
+   "init": {
+    "month_earned": 1495,
+    "played_dates": [
+     "2026-12-01"
+    ]
+   },
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "challenge",
+     "pattern": "one_per_dan"
+    }
+   ],
+   "expect": [
+    {
+     "play": 1,
+     "study": 5,
+     "streak_bonus": 0,
+     "self_best": 0
+    }
+   ]
+  },
+  {
+   "id": "TC13",
+   "description": "30日の月に毎日チャレンジ全問正解を3回。11/20に月の上限1,500到達",
+   "steps": [
+    {
+     "date_range": {
+      "from": "2026-11-01",
+      "to": "2026-11-30"
+     },
+     "mode": "challenge",
+     "pattern": "one_per_dan",
+     "repeat": 3
+    }
+   ],
+   "expect_totals": {
+    "month_total": 1500,
+    "cap_reached_on": "2026-11-20"
+   }
+  },
+  {
+   "id": "TC14",
+   "description": "段選択で7の段を卒業（100%到達）すると、次のプレイから段選択の7の段は0pt。到達したプレイ自体は通常どおり。順番モードと別の段は対象外",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 7,
+     "pattern": "dan",
+     "repeat": 4
+    },
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 6,
+     "pattern": "dan"
+    },
+    {
+     "date": "2026-12-02",
+     "mode": "training_sequential",
+     "dan": 7,
+     "pattern": "dan"
+    },
+    {
+     "date": "2026-12-02",
+     "mode": "training_select",
+     "dan": 7,
+     "pattern": "dan"
+    }
+   ],
+   "expect": [
+    {
+     "play": 3,
+     "study": 9,
+     "self_best": 60
+    },
+    {
+     "play": 4,
+     "study": 0,
+     "self_best": 0
+    },
+    {
+     "play": 5,
+     "study": 9
+    },
+    {
+     "play": 6,
+     "study": 9,
+     "streak_bonus": 2
+    },
+    {
+     "play": 7,
+     "study": 0,
+     "streak_bonus": 0
+    }
+   ]
+  },
+  {
+   "id": "TC15",
+   "description": "90%までの到達では卒業しない（卒業は graduation.rate=100%）",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 6,
+     "pattern": "dan",
+     "repeat": 2
+    },
+    {
+     "date": "2026-12-02",
+     "mode": "training_select",
+     "dan": 6,
+     "pattern": "dan",
+     "correct": 7
+    },
+    {
+     "date": "2026-12-02",
+     "mode": "training_select",
+     "dan": 6,
+     "pattern": "dan"
+    }
+   ],
+   "expect": [
+    {
+     "play": 3,
+     "study": 7,
+     "self_best": 30
+    },
+    {
+     "play": 4,
+     "study": 9,
+     "self_best": 0
+    }
+   ]
+  },
+  {
+   "id": "TC16",
+   "description": "卒業した段もチャレンジでは通常の単価（チャレンジは graduation.modes に含まれない）",
+   "steps": [
+    {
+     "date": "2026-12-01",
+     "mode": "training_select",
+     "dan": 1,
+     "pattern": "dan",
+     "repeat": 3
+    },
+    {
+     "date": "2026-12-02",
+     "mode": "challenge",
+     "pattern": "one_per_dan"
+    }
+   ],
+   "expect": [
+    {
+     "play": 3,
+     "study": 9,
+     "self_best": 60
+    },
+    {
+     "play": 4,
+     "study": 18,
+     "streak_bonus": 2
+    }
+   ]
+  }
+ ]
+}

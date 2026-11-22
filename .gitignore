@@ -1,0 +1,21 @@
+server/.venv/
+server/data/
+deploy/data/
+deploy/backups/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.db
+*.db-shm
+*.db-wal
+
+android/.gradle/
+android/build/
+android/*/build/
+android/local.properties
+*.apk
+!server/tests/fixtures/apk/*.apk
+android/.kotlin/
+
+# 中身を確認できないため除外（ポート等の環境ごとの値）
+deploy/.env

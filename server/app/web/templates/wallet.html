@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block title %}{{ child.display_name }}のお財布{% endblock %}
+{% block body %}<h1>{{ child.display_name }}のお財布</h1>
+<div class="card"><div class="mut">残高（台帳の合計）</div><div class="big {{ 'neg' if balance < 0 }}">{{ "{:,}".format(balance) }} 円</div>
+{% if balance < 0 %}<div class="neg">残高がマイナスです（オフラインでの引き出しの後追い同期などで起こります）</div>{% endif %}</div>
+<div class="grid">
+<div class="card"><h2 style="margin-top:0">引き出し</h2><form method="post" action="/children/{{ child.user_id }}/withdraw" onsubmit="return confirm('引き出しを記録します。よろしいですか？')" hx-boost="false">
+<input type="hidden" name="transaction_id" value="{{ withdraw_id }}"><label>金額（円）</label><input name="points" type="number" min="1" required> <button class="danger">引き出す</button></form>
+<p class="mut">残高を超える金額も記録できます。</p></div>
+<div class="card"><h2 style="margin-top:0">調整（入金・訂正）</h2><form method="post" action="/children/{{ child.user_id }}/adjust" hx-boost="false">
+<input type="hidden" name="adjustment_id" value="{{ adjust_id }}"><label>ポイント（入金は＋、訂正は−）</label><input name="points" type="number" required>
+<label>理由</label><input name="note" placeholder="例：12月の基本のお小遣い" style="width:100%"><p><button>記録する</button></p></form>
+<p class="mut">台帳は書き換えません。間違いは打ち消しの調整を追加して直します。</p></div></div>
+<h2>台帳</h2><form method="get" class="inline"><input type="date" name="d_from" value="{{ d_from }}"> 〜 <input type="date" name="d_to" value="{{ d_to }}"><button class="sub">絞り込み</button></form>
+<table><tr><th>日時</th><th>種別</th><th class="num">ポイント</th><th>メモ</th><th>操作者</th></tr>
+{% for e in entries %}<tr><td>{{ e.occurred_at|jst }}{% if e.play_date %}<div class="mut">プレイ日 {{ e.play_date }}</div>{% endif %}</td><td>{{ TYPE_LABEL[e.type] }}</td>
+<td class="num {{ 'neg' if e.points < 0 }}">{{ '%+d'|format(e.points) }}</td><td>{{ e.note or '' }}</td><td>{{ names.get(e.actor_user_id, '') }}</td></tr>
+{% else %}<tr><td colspan="5" class="mut">取引はまだありません</td></tr>{% endfor %}</table>
+<p><a href="/children/{{ child.user_id }}/plays">学習記録を見る</a></p>{% endblock %}

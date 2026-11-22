@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}ダッシュボード{% endblock %}
+{% block body %}<h1>{{ family.name }}</h1>
+{% if not cards %}<div class="card">子供がまだ登録されていません。<a href="/users">ユーザ管理</a>から追加してください。</div>{% endif %}
+<div class="grid">{% for c in cards %}
+<div class="card"><strong>{{ c.display_name }}</strong>
+<div class="big {{ 'neg' if c.balance < 0 }}">{{ "{:,}".format(c.balance) }}<span style="font-size:1rem"> 円</span></div>
+<div>連続 <strong>{{ c.streak_days }}</strong> 日 ／ 累積正解率 <strong>{{ (c.cumulative_accuracy*100)|round(1) }}%</strong></div>
+<div class="mut" style="margin-top:.4rem">今月 {{ c.month_earned }} / {{ c.month_cap }} pt（残り {{ c.month_remaining }}）</div>
+<div class="bar"><i style="width:{{ [100, (c.month_earned*100/c.month_cap) if c.month_cap else 0]|min }}%"></i></div>
+<div class="mut">最終プレイ {{ c.last_play_at|jst }}</div>
+<p><a class="btn" href="/children/{{ c.user_id }}/wallet">お財布</a> <a class="btn" style="background:var(--card);color:var(--fg);border:1px solid var(--line)" href="/children/{{ c.user_id }}/plays">学習記録</a></p></div>
+{% endfor %}</div>{% endblock %}

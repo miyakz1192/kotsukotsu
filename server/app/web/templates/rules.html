@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}ポイントルール{% endblock %}
+{% block body %}<h1>ポイントルール <span class="tag">現在 版{{ rules.version }}</span></h1>
+<div class="card"><form method="post" action="/rules" hx-boost="false"><div class="grid">
+<div>{% for m, label in [('training_sequential','トレーニング（順番）'),('training_select','トレーニング（段選択）'),('challenge','チャレンジ')] %}
+<label>1問正解のポイント：{{ label }}</label><input type="number" min="0" name="ppc_{{ m }}" value="{{ rules.points_per_correct[m] }}" required>{% endfor %}
+<label>連続日数ボーナス（1日あたり）</label><input type="number" min="0" name="streak_bonus_per_day" value="{{ rules.streak_bonus_per_day }}" required></div>
+<div><label>1日のポイント上限（正解ポイントのみ）</label><input type="number" min="0" name="daily_point_cap" value="{{ rules.daily_point_cap }}" required>
+<label>1日の問題数上限</label><input type="number" min="0" name="daily_question_cap" value="{{ rules.daily_question_cap }}" required>
+<label>月の上限（正解＋連続＋自己ベスト）</label><input type="number" min="0" name="monthly_cap" value="{{ rules.monthly_cap }}" required></div>
+<div><label>自己ベスト：判定する直近の問題数</label><input type="number" min="1" name="window" value="{{ rules.self_best.window }}" required>
+{% for i in range(3) %}{% set th = rules.self_best.thresholds[i] if i < rules.self_best.thresholds|length else none %}
+<label>到達点{{ i+1 }}：正解率（%）／ボーナス（空欄で無し）</label><input type="number" min="1" max="100" name="th_rate_{{ i }}" value="{{ th.rate if th else '' }}"> <input type="number" min="0" name="th_bonus_{{ i }}" value="{{ th.bonus if th else '' }}">{% endfor %}</div></div>
+{% set g = rules.graduation %}
+<h3>卒業した段</h3>
+<label style="font-weight:normal"><input type="checkbox" name="grad_on" value="1" style="width:auto"{% if g %} checked{% endif %}> 使う：自己ベストを達成した段は、選んだモードで1問正解のポイントを変える（簡単な段だけをくり返すのを防ぐ）</label>
+<div class="grid"><div><label>卒業とする自己ベストの正解率（%、到達点のどれかと同じ値）</label><input type="number" min="1" max="100" name="grad_rate" value="{{ g.rate if g else 100 }}">
+<label>卒業した段の1問正解のポイント</label><input type="number" min="0" name="grad_points" value="{{ g.points_per_correct if g else 0 }}"></div>
+<div><label>対象のモード</label>{% for m, label in [('training_sequential','トレーニング（順番）'),('training_select','トレーニング（段選択）'),('challenge','チャレンジ')] %}
+<label style="font-weight:normal"><input type="checkbox" name="grad_mode_{{ m }}" value="1" style="width:auto"{% if (g and m in g.modes) or (not g and m == 'training_select') %} checked{% endif %}> {{ label }}</label>{% endfor %}</div></div>
+<label>変更理由（必須）</label><input name="note" required style="width:100%"><p><button>新しい版として保存</button></p></form>
+<p class="mut">保存すると新しい版になり、過去の版は残ります。すでに台帳に記録したポイントは変わりません。</p></div>
+<h2>変更履歴</h2><table><tr><th>版</th><th>日時</th><th>変更者</th><th>理由</th><th>内容</th></tr>
+{% for h in history %}<tr><td>{{ h.version }}</td><td>{{ h.effective_from|jst }}</td><td>{{ names.get(h.created_by, '-') }}</td><td>{{ h.note or '' }}</td>
+<td><details><summary>見る</summary><code style="white-space:pre-wrap">{{ h.settings_json|tojson(indent=1) }}</code></details></td></tr>{% endfor %}</table>{% endblock %}

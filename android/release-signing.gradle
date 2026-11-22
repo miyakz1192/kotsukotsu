@@ -1,0 +1,24 @@
+// 配布用（release）の署名設定。鍵と パスワードはリポジトリの外に置く（CLAUDE.md：秘密情報を入れない）。
+// 既定: ~/.kotsukotsu-secrets/signing.properties（KOTSU_SIGNING_PROPS で変更可）
+//   kotsuKeystore=/path/to/release.jks
+//   kotsuKeystorePassword=...
+//   kotsuKeyAlias=kotsukotsu
+// 鍵が変わると端末で更新できなくなる（入れ直しが必要）。鍵は別の機器にバックアップすること。
+def propsFile = new File(System.getenv("KOTSU_SIGNING_PROPS") ?: "${System.getProperty('user.home')}/.kotsukotsu-secrets/signing.properties")
+if (propsFile.exists()) {
+    def p = new Properties()
+    propsFile.withInputStream { p.load(it) }
+    android {
+        signingConfigs {
+            release {
+                storeFile file(p.getProperty("kotsuKeystore"))
+                storePassword p.getProperty("kotsuKeystorePassword")
+                keyAlias p.getProperty("kotsuKeyAlias")
+                keyPassword p.getProperty("kotsuKeyPassword", p.getProperty("kotsuKeystorePassword"))
+            }
+        }
+        buildTypes { release { signingConfig signingConfigs.release } }
+    }
+} else {
+    logger.warn("release 署名の設定がありません（${propsFile}）。release の APK は署名なしで作られ、配布できません")
+}

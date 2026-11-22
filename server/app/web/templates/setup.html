@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block title %}家族の作成{% endblock %}
+{% block body %}<div class="card" style="max-width:480px;margin:2rem auto"><h1>家族を作成</h1>
+<p>このシステムで使う家族を作成します（家族は1つだけです）。いまログインしているあなたが、この家族の親になります。</p>
+<form method="post" action="/setup"><label>家族の名前</label><input name="name" required style="width:100%" placeholder="例：みやざき家">
+<p><button>作成する</button></p></form></div>{% endblock %}

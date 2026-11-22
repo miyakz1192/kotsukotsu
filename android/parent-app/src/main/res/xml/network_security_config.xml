@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 管理サーバは家庭内LANのみで HTTP 運用（docs/08 A4）。IPアドレスが家庭ごとに違うため平文通信を許可する。
+     HTTPS 化したら cleartextTrafficPermitted を false にする。 -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 積み木（こつこつ）と星のシンプルなアイコン -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF" android:pathData="M32,62 h20 v16 h-20 Z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M56,62 h20 v16 h-20 Z" />
+    <path android:fillColor="#BBDEFB" android:pathData="M44,44 h20 v16 h-20 Z" />
+    <path android:fillColor="#FFF59D"
+        android:pathData="M54,22 L57,30 L65.5,30.5 L59,36 L61,44 L54,39.5 L47,44 L49,36 L42.5,30.5 L51,30 Z" />
+</vector>

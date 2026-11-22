@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}管理画面{% endblock %} - おこづかい</title>
+<link rel="stylesheet" href="/static/style.css"><script src="/static/htmx.min.js" defer></script></head>
+<body hx-boost="true">
+{% if user and not user.must_change_password and user.family_id %}
+<header><strong>おこづかい管理</strong>
+<a href="/">ダッシュボード</a><a href="/users">ユーザ</a><a href="/registrations">ゲーム登録</a><a href="/rules">ポイントルール</a><a href="/apk">ゲーム配信</a><a href="/notifications">おしらせ</a>
+<span class="sp"></span><span class="mut">{{ user.display_name }}</span><a href="/password">パスワード</a>
+<form method="post" action="/logout" hx-boost="false" class="inline"><button class="sub">ログアウト</button></form></header>
+{% endif %}
+<main>
+{% if msg %}<div class="flash msg">{{ msg }}</div>{% endif %}{% if err %}<div class="flash err">{{ err }}</div>{% endif %}
+{% block body %}{% endblock %}
+</main></body></html>
